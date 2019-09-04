@@ -1,0 +1,39 @@
+---
+- name: Discover VMware Resources
+  hosts: localhost
+  gather_facts: false
+  collections:
+    - community.vmware
+
+  tasks:
+    - name: Gather info about all datacenters
+      community.vmware.vmware_datacenter_info:
+      register: datacenter_info
+
+    - name: Display datacenters
+      debug:
+        msg: "Available Datacenters: {{ datacenter_info.datacenter_info | map(attribute='name') | list }}"
+
+    - name: Gather cluster info
+      community.vmware.vmware_cluster_info:
+      register: cluster_info
+
+    - name: Display clusters
+      debug:
+        msg: "Available Clusters: {{ cluster_info.clusters | dict2items | map(attribute='key') | list }}"
+
+    - name: Gather datastore info
+      community.vmware.vmware_datastore_info:
+      register: datastore_info
+
+    - name: Display datastores
+      debug:
+        msg: "Available Datastores: {{ datastore_info.datastores | map(attribute='name') | list }}"
+
+    - name: Display summary
+      debug:
+        msg: |
+          === VMware Environment Summary ===
+          Datacenters: {{ datacenter_info.datacenter_info | map(attribute='name') | join(', ') }}
+          Clusters: {{ cluster_info.clusters | dict2items | map(attribute='key') | join(', ') }}
+          Datastores: {{ datastore_info.datastores | map(attribute='name') | join(', ') }}

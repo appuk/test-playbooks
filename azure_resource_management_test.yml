@@ -1,0 +1,65 @@
+---
+- name: Azure Resource Management Test for Indirect Node Data
+  hosts: localhost
+  gather_facts: false
+  collections:
+    - azure.azcollection
+
+  vars:
+    resource_group: "test-indirect-nodes-rg"
+    location: "eastus"
+    storage_account: "testindirectnodessa"
+    vnet_name: "test-vnet"
+
+  tasks:
+    - name: Create resource group
+      azure.azcollection.azure_rm_resourcegroup:
+        name: "{{ resource_group }}"
+        location: "{{ location }}"
+        state: present
+      register: rg_result
+
+    - name: Create storage account
+      azure.azcollection.azure_rm_storageaccount:
+        resource_group: "{{ resource_group }}"
+        name: "{{ storage_account }}"
+        account_type: Standard_LRS
+        state: present
+      register: storage_result
+
+    - name: Create virtual network
+      azure.azcollection.azure_rm_virtualnetwork:
+        resource_group: "{{ resource_group }}"
+        name: "{{ vnet_name }}"
+        address_prefixes: "10.0.0.0/16"
+        state: present
+      register: vnet_result
+
+    - name: Display created resources
+      debug:
+        msg: |
+          Resource Group: {{ rg_result.state.name }}
+          Storage Account: {{ storage_result.state.name }}
+          Virtual Network: {{ vnet_result.state.name }}
+
+    - name: Delete virtual network
+      azure.azcollection.azure_rm_virtualnetwork:
+        resource_group: "{{ resource_group }}"
+        name: "{{ vnet_name }}"
+        state: absent
+
+    - name: Delete storage account
+      azure.azcollection.azure_rm_storageaccount:
+        resource_group: "{{ resource_group }}"
+        name: "{{ storage_account }}"
+        state: absent
+
+    - name: Wait for resources to finish deleting
+      ansible.builtin.pause:
+        seconds: 15
+
+    - name: Delete resource group
+      azure.azcollection.azure_rm_resourcegroup:
+        name: "{{ resource_group }}"
+        state: absent
+        force_delete_nonempty: true

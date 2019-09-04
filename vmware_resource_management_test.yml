@@ -1,0 +1,62 @@
+---
+- name: VMware Resource Management Test for Indirect Node Data
+  hosts: localhost
+  gather_facts: false
+  collections:
+    - community.vmware
+
+  vars:
+    datacenter_name: "Datacenter"
+    cluster_name: "Cluster"
+    vm_name: "test-indirect-node-vm"
+    vm_folder: "/vm"
+    datastore_name: "datastore1"
+    vm_network: "VM Network"
+    vm_disk_gb: 20
+    vm_memory_mb: 2048
+    vm_num_cpus: 2
+    vm_guest_id: "ubuntu64Guest"
+
+  tasks:
+    - name: Create a virtual machine
+      community.vmware.vmware_guest:
+        datacenter: "{{ datacenter_name }}"
+        folder: "{{ vm_folder }}"
+        name: "{{ vm_name }}"
+        state: present
+        guest_id: "{{ vm_guest_id }}"
+        cluster: "{{ cluster_name }}"
+        hardware:
+          memory_mb: "{{ vm_memory_mb }}"
+          num_cpus: "{{ vm_num_cpus }}"
+        disk:
+          - size_gb: "{{ vm_disk_gb }}"
+            type: thin
+            datastore: "{{ datastore_name }}"
+        networks:
+          - name: "{{ vm_network }}"
+            device_type: vmxnet3
+      register: vm_create_result
+
+    - name: Power on the virtual machine
+      community.vmware.vmware_guest_powerstate:
+        name: "{{ vm_name }}"
+        state: powered-on
+      register: vm_power_result
+
+    - name: Display created VM
+      debug:
+        msg: |
+          VM Name: {{ vm_create_result.instance.hw_name }}
+          VM UUID: {{ vm_create_result.instance.instance_uuid }}
+          VM Power State: {{ vm_power_result.instance.hw_power_status }}
+
+    - name: Power off the virtual machine
+      community.vmware.vmware_guest_powerstate:
+        name: "{{ vm_name }}"
+        state: powered-off
+
+    - name: Delete the virtual machine
+      community.vmware.vmware_guest:
+        name: "{{ vm_name }}"
+        state: absent
