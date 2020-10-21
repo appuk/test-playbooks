@@ -1,0 +1,6 @@
+---
+roles:
+  - motd
+collections:
+  - ericsysmin.system
+  - ibm.qradar

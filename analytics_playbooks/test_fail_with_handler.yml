@@ -1,0 +1,13 @@
+---
+- name: has a failed task is not the final task
+  hosts: all
+  force_handlers: true
+  tasks:
+    - debug: msg="This is going to trigger handler"
+      changed_when: true
+      notify: handler
+    - fail:
+        msg: "Failed task"
+  handlers:
+    - name: handler
+      debug: msg="in handler"

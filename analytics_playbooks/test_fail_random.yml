@@ -1,0 +1,9 @@
+---
+- name: Fails randomly
+  hosts: all
+  tasks:
+  - name: "Randomly Failing Task"
+    fail:
+      msg: "Failed task"
+    when: ansible_date_time.epoch|int % 2 == 0
+  

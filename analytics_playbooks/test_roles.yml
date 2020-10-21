@@ -1,0 +1,8 @@
+---
+- name: Uses role
+  hosts: all
+  become: true
+  remote_user: root
+  become_method: enable
+  roles:
+    - motd

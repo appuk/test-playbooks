@@ -1,0 +1,5 @@
+---
+- name: Fails before the tasks for trying to import incorrect role
+  hosts: all
+  roles:
+    - incorrect.role
