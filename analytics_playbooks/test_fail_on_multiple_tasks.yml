@@ -1,12 +1,17 @@
 ---
-- name: contains multiple failed tasks
-  gather_facts: False
-  hosts: all
+- name: fails 2 times in a single playbook
+  hosts: localhost
+  connection: local
+  force_handlers: true
   tasks:
-  - name: "Fail task with ignore errors set as True"
+  - debug:
+      msg: "Notify my_handler please"
+    changed_when: true
+    notify:
+    - my_handler
+  - fail:
+      msg: "Failing task"
+  handlers:
+  - name: my_handler
     fail:
-      msg: "Failed task"
-    ignore_errors: true
-  - name: "Another fail task"
-    fail:
-      msg: "Failed task"
+      msg: "Failing handler"
