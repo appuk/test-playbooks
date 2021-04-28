@@ -1,0 +1,2 @@
+- name: imported task
+  ping:

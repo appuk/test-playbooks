@@ -1,0 +1,9 @@
+---
+- name: imported playbook
+  gather_facts: False
+  hosts: localhost3, localhost4, localhost5
+  vars:
+   fail: true
+  tasks:
+   - fail: msg="Sorry, unless you tell me otherwise, this task will fail"
+     when: fail

@@ -1,0 +1,13 @@
+---
+- name: imports a task for static use
+  gather_facts: False
+  hosts: localhost1, localhost2, localhost3
+  tasks:
+  - import_tasks: play1.yml
+- name: includes a task for dynamic use
+  gather_facts: False
+  hosts: localhost2, localhost3, localhost4
+  tasks:
+  - include_tasks: play2.yml
+- name: imports a failing playbook
+  import_playbook: play3.yml
