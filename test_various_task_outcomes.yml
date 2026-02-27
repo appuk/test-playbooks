@@ -1,0 +1,26 @@
+---
+- name: Test task outcomes with multiple hosts
+  hosts: all
+  gather_facts: true
+
+  tasks:
+    - name: Print hostname
+      debug:
+        msg: "Running on host: {{ inventory_hostname }}"
+
+    - name: Create a temporary file
+      copy:
+        content: "Test content from {{ inventory_hostname }}"
+        dest: "/tmp/test_{{ inventory_hostname }}.txt"
+
+    - name: Display system information
+      debug:
+        msg: "OS Family: {{ ansible_os_family | default('Unknown') }}, Distribution: {{ ansible_distribution | default('Unknown') }}"
+
+    - name: Run a simple command
+      command: echo "Hello from {{ inventory_hostname }}"
+      register: command_output
+
+    - name: Show command output
+      debug:
+        msg: "Command output: {{ command_output.stdout }}"
