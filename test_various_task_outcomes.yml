@@ -1,0 +1,50 @@
+---
+- name: Play 1 - Test Standard Outcomes
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: SUCCESS - Simple successful task
+      debug:
+        msg: "This task always results in 'ok'"
+
+    - name: CHANGE - Creates a file to force 'changed' status
+      file:
+        path: "/tmp/ansible_force_change_{{ inventory_hostname }}"
+        state: touch
+
+    - name: IGNORE - This fails but allows the playbook to continue
+      command: /bin/false
+      ignore_errors: true
+
+    - name: SKIP - This task is intentionally bypassed
+      debug:
+        msg: "This will always be skipped"
+      when: false
+
+    - name: RETRY - Fails twice then succeeds
+      shell: "if [ ! -f /tmp/retry_done ]; then touch /tmp/retry_done; exit 1; else rm /tmp/retry_done; exit 0; fi"
+      register: retry_result
+      until: retry_result.rc == 0
+      retries: 5
+      delay: 1
+
+    - name: FAIL - This task stops the play for the host
+      command: /bin/false
+
+- name: Play 2 - Force Unreachable Metric
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: UNREACHABLE - Attempting to contact a non-existent IP
+      add_host:
+        name: "force-unreachable-node"
+        ansible_host: "192.0.2.1"
+        ansible_connection: "ssh"
+        ansible_ssh_common_args: "-o ConnectTimeout=1 -o ConnectionAttempts=1"
+
+- name: Play 3 - Execute against the unreachable host
+  hosts: force-unreachable-node
+  gather_facts: false
+  tasks:
+    - name: This will trigger the Unreachable metric
+      ping:

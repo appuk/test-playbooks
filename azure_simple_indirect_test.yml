@@ -1,0 +1,43 @@
+---
+- name: Azure Simple Indirect Node Test
+  hosts: localhost
+  gather_facts: false
+  collections:
+    - azure.azcollection
+
+  vars:
+    resource_group: "test-indirect-rg"
+    location: "eastus"
+    storage_account: "testindirectsa{{ 9999 | random }}"
+
+  tasks:
+    - name: Create resource group
+      azure.azcollection.azure_rm_resourcegroup:
+        name: "{{ resource_group }}"
+        location: "{{ location }}"
+        state: present
+
+    - name: Create storage account
+      azure.azcollection.azure_rm_storageaccount:
+        resource_group: "{{ resource_group }}"
+        name: "{{ storage_account }}"
+        account_type: Standard_LRS
+        state: present
+
+    - name: Delete storage account
+      azure.azcollection.azure_rm_storageaccount:
+        resource_group: "{{ resource_group }}"
+        name: "{{ storage_account }}"
+        state: absent
+      register: storage_delete
+
+    - name: Wait for storage account deletion
+      ansible.builtin.pause:
+        seconds: 10
+      when: storage_delete.changed
+
+    - name: Delete resource group
+      azure.azcollection.azure_rm_resourcegroup:
+        name: "{{ resource_group }}"
+        state: absent
+        force_delete_nonempty: true
