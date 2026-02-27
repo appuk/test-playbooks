@@ -1,0 +1,47 @@
+---
+- name: Playbook to generate various task outcomes
+  hosts: all
+  gather_facts: no
+  # This ensures the play reaches the final summary table
+  ignore_unreachable: no
+
+  tasks:
+    # 1. OK
+    - name: Task 1 - Generate OK
+      debug:
+        msg: "Success"
+
+    # 2. SKIPPED
+    - name: Task 2 - Generate SKIPPED
+      debug:
+        msg: "Skipping..."
+      when: false
+
+    # 3. CHANGED
+    - name: Task 3 - Generate CHANGED
+      tempfile:
+        state: file
+        suffix: _status_test
+
+    # 4. IGNORED
+    - name: Task 4 - Generate IGNORED
+      command: /bin/false
+      ignore_errors: yes
+
+    # 5. RESCUED
+    - name: Task 5 - Generate RESCUED
+      block:
+        - name: Trigger failure for rescue
+          command: /bin/false
+      rescue:
+        - name: Rescue the failure
+          debug:
+            msg: "This increments the rescued counter"
+
+    # 6. UNREACHABLE
+    # We use port 1 to force a connection refusal
+    - name: Task 6 - Generate UNREACHABLE
+      ping:
+      vars:
+        ansible_port: 1
+        ansible_connection: ssh
